@@ -1,0 +1,241 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: miNatillera Backend — Serverless Spring Boot on Lambda with SnapStart
+
+Parameters:
+  Stage:
+    Type: String
+    Default: prod
+    AllowedValues: [prod, dev]
+  AlertEmail:
+    Type: String
+    Description: Email for budget alerts
+  FrontendDomain:
+    Type: String
+    Description: CloudFront domain for CORS (e.g. d1234abcdef.cloudfront.net)
+    Default: "*"
+
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 1024
+    Runtime: java21
+    Architectures:
+      - x86_64
+
+Resources:
+
+  # ============================================================
+  # DynamoDB Table — Single Table Design
+  # ============================================================
+  MiNatilleraTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: minatillera
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # ============================================================
+  # SSM Parameters
+  # ============================================================
+  ParamTableName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /minatillera/prod/dynamodb/tableName
+      Type: String
+      Value: minatillera
+
+  ParamRegion:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /minatillera/prod/aws/region
+      Type: String
+      Value: !Ref AWS::Region
+
+  # ============================================================
+  # S3 Bucket — Receipt Images
+  # ============================================================
+  ReceiptsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "minatillera-receipts-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [PUT, GET]
+            AllowedOrigins: [!Sub "https://${FrontendDomain}"]
+            MaxAge: 300
+
+  ReceiptsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ReceiptsBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${ReceiptsBucket.Arn}/receipts/*"
+
+  # ============================================================
+  # IAM Role — Least Privilege
+  # ============================================================
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: minatillera-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: minatillera-lambda-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # DynamoDB — only specific actions on the specific table
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                Resource:
+                  - !GetAtt MiNatilleraTable.Arn
+              # S3 — receipts bucket (put + get)
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource:
+                  - !Sub "${ReceiptsBucket.Arn}/receipts/*"
+              # SSM Parameter Store — read-only on our namespace
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                Resource:
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/minatillera/prod/*
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/minatillera-api:*
+
+  # ============================================================
+  # Lambda Function with SnapStart
+  # ============================================================
+  MiNatilleraFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: minatillera-api
+      Handler: com.minatillera.StreamLambdaHandler::handleRequest
+      CodeUri: ../backend/target/minatillera-backend-1.0.0.jar
+      Role: !GetAtt LambdaExecutionRole.Arn
+      SnapStart:
+        ApplyOn: PublishedVersions
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          JAVA_TOOL_OPTIONS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+          CORS_ALLOWED_ORIGIN: !Sub "https://${FrontendDomain}"
+          RECEIPTS_BUCKET_NAME: !Ref ReceiptsBucket
+      Events:
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MiNatilleraHttpApi
+            Path: /{proxy+}
+            Method: ANY
+            PayloadFormatVersion: "1.0"
+        ApiRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MiNatilleraHttpApi
+            Path: /
+            Method: ANY
+            PayloadFormatVersion: "1.0"
+
+  # ============================================================
+  # HTTP API Gateway with CORS and Throttling
+  # ============================================================
+  MiNatilleraHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 20
+        ThrottlingRateLimit: 10
+
+  # ============================================================
+  # AWS Budget — Alert at $1 USD
+  # ============================================================
+  CostBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: minatillera-monthly-1usd
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: 1
+          Unit: USD
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${MiNatilleraHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt MiNatilleraFunction.Arn
+  TableName:
+    Description: DynamoDB table name
+    Value: !Ref MiNatilleraTable
+  ReceiptsBucketName:
+    Description: S3 bucket for receipt images
+    Value: !Ref ReceiptsBucket

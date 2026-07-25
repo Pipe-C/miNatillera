@@ -1,0 +1,31 @@
+.progress-ring { position: relative; display: flex; align-items: center; justify-content: center; }
+.progress-ring__svg { display: block; }
+.progress-ring__arc { filter: drop-shadow(0 0 8px rgba(124, 92, 252, 0.25)); }
+.progress-ring__content { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.progress-ring__percent { font-size: 2.8rem; font-weight: 700; letter-spacing: -0.03em; color: var(--color-text-primary); }
+.progress-ring--sm .progress-ring__percent { font-size: 1.3rem; }
+.progress-ring__amount { font-size: 0.95rem; font-weight: 500; color: var(--color-text-primary); }
+.progress-ring--sm .progress-ring__amount { font-size: 0.75rem; }
+.progress-ring__goal { font-size: 0.8rem; color: var(--color-text-secondary); }
+.progress-ring--sm .progress-ring__goal { font-size: 0.65rem; }
+
+.progress-ring--loading .progress-ring__arc { animation: ring-spin 2s linear infinite; }
+.progress-ring__loader { display: flex; align-items: center; justify-content: center; }
+.progress-ring__pulse { width: 12px; height: 12px; border-radius: 9999px; background: var(--color-accent); animation: pulse 1.5s ease-in-out infinite; }
+
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.4); opacity: 1; } }
+@keyframes ring-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-ring__arc { transition: none; }
+  .progress-ring--loading .progress-ring__arc { animation: none; }
+  .progress-ring__pulse { animation: none; opacity: 0.8; }
+}
+
+/* Light mode — stronger ring contrast */
+:root.light .progress-ring__arc {
+  stroke: #6B4AE8;
+}
+:root.light .progress-ring__svg circle:first-child {
+  stroke: #DDD9E4;
+}

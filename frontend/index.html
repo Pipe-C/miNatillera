@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>miNatillera</title>
+    <meta name="description" content="Gestiona tu natillera digital: aportes, progreso y metas en grupo." />
+    <meta name="theme-color" content="#7C5CFC" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <script>
+      // Apply theme class before first paint to prevent flash
+      (function(){var t=localStorage.getItem('theme');if(t==='light')document.documentElement.classList.add('light')})()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Unregister any existing service worker to prevent stale cache issues
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(r => r.unregister())
+        })
+        // Also clear old caches
+        if ('caches' in window) {
+          caches.keys().then(keys => keys.forEach(k => caches.delete(k)))
+        }
+      }
+    </script>
+  </body>
+</html>

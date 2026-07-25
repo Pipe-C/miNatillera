@@ -1,0 +1,36 @@
+const quotes = [
+  { text: "El ahorro de hoy es la libertad de mañana.", author: null },
+  { text: "Gota a gota se llena el vaso.", author: null },
+  { text: "La constancia es la madre de los grandes logros.", author: null },
+  { text: "Un peso ahorrado hoy vale más que mil prometidos mañana.", author: null },
+  { text: "Juntos llegamos más lejos que solos.", author: null },
+  { text: "La disciplina supera a la motivación.", author: null },
+  { text: "No se trata de cuánto ganás, sino de cuánto guardás.", author: null },
+  { text: "El mejor momento para empezar a ahorrar fue ayer. El segundo mejor es hoy.", author: null },
+  { text: "Los pequeños aportes constantes construyen grandes resultados.", author: null },
+  { text: "La meta no se logra con un salto, sino con muchos pasos.", author: null },
+  { text: "La confianza se construye con transparencia.", author: null },
+  { text: "Cada aporte cuenta, cada miembro importa.", author: null },
+  { text: "El futuro pertenece a quienes se preparan hoy.", author: null },
+  { text: "No ahorres lo que te queda después de gastar; gasta lo que te queda después de ahorrar.", author: null },
+  { text: "La unión hace la fuerza.", author: null },
+  { text: "Poco a poco se anda lejos.", author: null },
+  { text: "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", author: null },
+  { text: "La perseverancia no es una carrera larga; es muchas carreras cortas una tras otra.", author: null },
+  { text: "Quien guarda siempre tiene.", author: null },
+  { text: "El que ahorra tiene, y el que tiene puede.", author: null },
+  { text: "No hay viento favorable para quien no sabe a dónde va.", author: null },
+  { text: "La paciencia es la compañera de la sabiduría.", author: null },
+  { text: "De grano en grano, la gallina llena el buche.", author: null },
+  { text: "El camino de mil leguas comienza con un solo paso.", author: null },
+  { text: "Lo que se siembra hoy, se cosecha mañana.", author: null },
+  { text: "La riqueza no es tener mucho, sino necesitar poco.", author: null },
+  { text: "Más vale paso que dure y no trote que canse.", author: null },
+  { text: "La prosperidad no es solo dinero — es paz mental.", author: null },
+  { text: "Invertir en tu grupo es invertir en tu futuro.", author: null },
+  { text: "El compromiso colectivo transforma las metas individuales.", author: null },
+]
+
+export function getRandomQuote() {
+  return quotes[Math.floor(Math.random() * quotes.length)]
+}

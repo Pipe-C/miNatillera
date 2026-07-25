@@ -1,0 +1,30 @@
+.savings-illust__coin {
+  transform-box: fill-box;
+  animation: coin-fall 4s ease-in-out infinite;
+}
+
+@keyframes coin-fall {
+  0%, 40% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(35px) scale(0.8); opacity: 0.8; }
+  55% { transform: translateY(49px) scale(0.3); opacity: 0; }
+  56%, 94% { transform: translateY(0) scale(1); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.savings-illust__piggy {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: piggy-pop 4s ease-out infinite;
+}
+
+@keyframes piggy-pop {
+  0%, 53% { transform: scale(1); }
+  57% { transform: scale(1.07); }
+  63% { transform: scale(1); }
+  64%, 100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .savings-illust__coin { animation: none; opacity: 1; }
+  .savings-illust__piggy { animation: none; }
+}

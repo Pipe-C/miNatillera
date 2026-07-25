@@ -1,0 +1,31 @@
+# Build outputs
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# Environment files with secrets
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Kiro skills (third-party, not project content)
+.agents/
+skills-lock.json
+
+# SAM build artifacts
+.aws-sam/

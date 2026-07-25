@@ -1,0 +1,14 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "minatillera-stack"
+resolve_s3 = true
+s3_prefix = "minatillera-stack"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_NAMED_IAM"
+parameter_overrides = "Stage=\"prod\" AlertEmail=\"feliperincon487@gmail.com\" FrontendDomain=\"example.com\""
+image_repositories = []
+
+[default.global.parameters]
+region = "us-east-1"

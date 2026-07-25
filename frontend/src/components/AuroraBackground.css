@@ -1,0 +1,84 @@
+.aurora {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  transition: opacity 0.5s ease-out;
+}
+
+.aurora--landing { opacity: 0.22; }
+.aurora--home { opacity: 0.12; }
+
+:root.light .aurora--landing { opacity: 0.10; }
+:root.light .aurora--home { opacity: 0.06; }
+
+.aurora__blob {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+/* Blob 1 — primary purple, starts upper-left, drifts through center */
+.aurora__blob--1 {
+  width: 600px;
+  height: 600px;
+  top: -5%;
+  left: 10%;
+  background: radial-gradient(circle, #7C5CFC 0%, transparent 70%);
+  filter: blur(100px);
+  animation: drift-1 22s ease-in-out infinite alternate;
+}
+
+/* Blob 2 — deep purple, starts lower area, drifts up through center */
+.aurora__blob--2 {
+  width: 550px;
+  height: 550px;
+  bottom: 5%;
+  left: 30%;
+  background: radial-gradient(circle, #5C3FD4 0%, transparent 70%);
+  filter: blur(120px);
+  animation: drift-2 28s ease-in-out infinite alternate;
+}
+
+/* Blob 3 — warm accent, starts right-center, drifts across center */
+.aurora__blob--3 {
+  width: 450px;
+  height: 450px;
+  top: 25%;
+  right: 5%;
+  background: radial-gradient(circle, #FBBF77 0%, transparent 70%);
+  filter: blur(130px);
+  animation: drift-3 25s ease-in-out infinite alternate;
+}
+
+/* Drift paths — wide traversal across viewport center */
+@keyframes drift-1 {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(15vw, 12vh); }
+  50%  { transform: translate(8vw, 25vh); }
+  75%  { transform: translate(20vw, 8vh); }
+  100% { transform: translate(10vw, 18vh); }
+}
+
+@keyframes drift-2 {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(10vw, -15vh); }
+  45%  { transform: translate(-5vw, -8vh); }
+  70%  { transform: translate(15vw, -20vh); }
+  100% { transform: translate(5vw, -12vh); }
+}
+
+@keyframes drift-3 {
+  0%   { transform: translate(0, 0); }
+  30%  { transform: translate(-12vw, 10vh); }
+  60%  { transform: translate(-20vw, -5vh); }
+  100% { transform: translate(-8vw, 8vh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora__blob {
+    animation: none !important;
+    will-change: auto;
+  }
+}

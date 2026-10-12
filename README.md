@@ -4,9 +4,7 @@ Aplicación web para gestionar natilleras (grupos de ahorro colectivo) de forma 
 
 **Hackathon:** Código Facilito 2026 - Kiro AI Hackathon
 
-**Demo en vivo:** https://d2a4sb8pl2c18a.cloudfront.net/
-
-**Video demo:** *(pendiente)*
+**Demo en vivo:** *no disponible*
 
 ---
 
